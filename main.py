@@ -59,17 +59,16 @@ def add_to_queue(cell):
   if queue == []: queue.append(cell)
   for c in queue:
     if cell.dist > c.dist:
-      # print(i-1, cell, queue)
-      return queue.insert(i-1, cell)
+      queue.insert(i-1, cell)
+      break
     i += 1
-  # print("on veut ajouter ", cell)
 
 def set_start(x, y):
   global queue
   fill_cell(x, y, "red")
   cell_grid[i(x, y)].type = 's'
   cell_grid[i(x, y)].dist = 0
-  queue = [cell_grid[i(x, y)]]
+  queue.append(cell_grid[i(x, y)])
 
 def set_end(x, y):
   fill_cell(x, y, "yellow")
@@ -89,11 +88,8 @@ def update_neighbour(neighbour, parent):
   elif neighbour.dist < parent.dist + 10:
     neighbour.dist = parent.dist + 10
   if not mem(neighbour):
-    # print("QDEDED")
     add_to_queue(neighbour)
-  # print("on a ajoute ", neighbour, " un neighbour: ", len(queue))
   neighbour.parent = parent
-  return queue
 
 def iteration(start_cell, end_cell):
   global queue
@@ -101,24 +97,18 @@ def iteration(start_cell, end_cell):
   print("ajout de ", curr_cell)
   if curr_cell == end_cell: backtrace(start_cell, end_cell)
   else:
-    # print(len(queue))
     queue.pop(0)
-    # print("cha")
     if curr_cell.y > 0:
-      # print(curr_cell.x, curr_cell.y - 1)
-      queue = update_neighbour(cell_grid[i(curr_cell.x, curr_cell.y - 1)], curr_cell)
+      update_neighbour(cell_grid[i(curr_cell.x, curr_cell.y - 1)], curr_cell)
       print("len de queue :", len(queue))
     if curr_cell.y < MAX_CELL_Y:
-      # print(curr_cell.x, curr_cell.y + 1)
-      queue = update_neighbour(cell_grid[i(curr_cell.x, curr_cell.y + 1)], curr_cell)
+      update_neighbour(cell_grid[i(curr_cell.x, curr_cell.y + 1)], curr_cell)
       print("len de queue :", len(queue))
     if curr_cell.x > 0:
-      # print(curr_cell.x - 1, curr_cell.y)
-      queue = update_neighbour(cell_grid[i(curr_cell.x - 1, curr_cell.y)], curr_cell)
+      update_neighbour(cell_grid[i(curr_cell.x - 1, curr_cell.y)], curr_cell)
       print("len de queue :", len(queue))
     if curr_cell.y < MAX_CELL_X:
-      # print(curr_cell.x + 1, curr_cell.y)
-      queue = update_neighbour(cell_grid[i(curr_cell.x + 1, curr_cell.y)], curr_cell)
+      update_neighbour(cell_grid[i(curr_cell.x + 1, curr_cell.y)], curr_cell)
       print("len de queue :", len(queue))
     print("len de queue a la fin :", len(queue))
 
