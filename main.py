@@ -23,16 +23,27 @@ class Cell:
           # w = wall
           # s = start
           # e = end
+    def __str__(self):
+      return f'Cell(\'{self.x}\', {self.y}, {self.dist})'
 
 def i(x, y): return (x + y * MAX_CELL_X)
+
 cell_grid = []
+queue = []
+
+def mem(cell):
+  for c in queue:
+    if c == cell: return True
+  return False
 
 def init_grid():
   for x in range (0, WINDOW_WIDTH, block_size):
     for y in range (0, WINDOW_HEIGHT, block_size):
       r = pygame.Rect(x, y, block_size, block_size)
       pygame.draw.rect(screen, "gray", r, 1)
-      cell_grid.append(Cell(x, y))
+      cell_grid.append(Cell((int)(x/block_size), (int)(y/block_size)))
+      # print(len(cell_grid)-1, x, y, i(x, y))
+      # print(, )
 
 def fill_cell(x, y, color):
   r = pygame.Rect(block_size*x + 1, block_size*y + 1, inner_block, inner_block)
@@ -42,35 +53,83 @@ def set_wall(x, y):
   fill_cell(x, y, "gray")
   cell_grid[i(x, y)].type = 'w'
 
+def add_to_queue(cell):
+  global queue
+  i = 0
+  if queue == []: queue.append(cell)
+  for c in queue:
+    if cell.dist > c.dist:
+      # print(i-1, cell, queue)
+      return queue.insert(i-1, cell)
+    i += 1
+  # print("on veut ajouter ", cell)
+
 def set_start(x, y):
-  queue = [(x, y)]
+  global queue
   fill_cell(x, y, "red")
   cell_grid[i(x, y)].type = 's'
+  cell_grid[i(x, y)].dist = 0
+  queue = [cell_grid[i(x, y)]]
 
 def set_end(x, y):
   fill_cell(x, y, "yellow")
   cell_grid[i(x, y)].type = 'e'
 
+def backtrace(start_cell, end_cell):
+  print("BACKTRACE")
+  fill_cell(start_cell.x, start_cell.y, "blue")
+  if end_cell != start_cell: return backtrace(start_cell, end_cell.parent)
+  neighbour.dist = parent.dist + 10
 
-# def iteration(queue):
-#   curr_cell = queue[0]
-#   if curr_cell = target_cell: backtrace()
-#   else:
-#     queue.pop[0]
-#     update_neighbour(curr_cell)
-#     # ajout dans la liste et update de G et noter le parent
-#     # if y > 0: add(north_cell, queue)
-#     # if y < MAX_CELL_Y: add(south_cell, queue)
-#     # if x > 0: add(west_cell, queue)
-#     # if y < MAX_CELL_X: add(east_cell, queue)
+def update_neighbour(neighbour, parent):
+  global queue
+  fill_cell(neighbour.x, neighbour.y, "green")
+  if neighbour.dist == math.inf:
+    neighbour.dist = parent.dist + 10
+  elif neighbour.dist < parent.dist + 10:
+    neighbour.dist = parent.dist + 10
+  if not mem(neighbour):
+    # print("QDEDED")
+    add_to_queue(neighbour)
+  # print("on a ajoute ", neighbour, " un neighbour: ", len(queue))
+  neighbour.parent = parent
+  return queue
+
+def iteration(start_cell, end_cell):
+  global queue
+  curr_cell = queue[0]
+  print("ajout de ", curr_cell)
+  if curr_cell == end_cell: backtrace(start_cell, end_cell)
+  else:
+    # print(len(queue))
+    queue.pop(0)
+    # print("cha")
+    if curr_cell.y > 0:
+      # print(curr_cell.x, curr_cell.y - 1)
+      queue = update_neighbour(cell_grid[i(curr_cell.x, curr_cell.y - 1)], curr_cell)
+      print("len de queue :", len(queue))
+    if curr_cell.y < MAX_CELL_Y:
+      # print(curr_cell.x, curr_cell.y + 1)
+      queue = update_neighbour(cell_grid[i(curr_cell.x, curr_cell.y + 1)], curr_cell)
+      print("len de queue :", len(queue))
+    if curr_cell.x > 0:
+      # print(curr_cell.x - 1, curr_cell.y)
+      queue = update_neighbour(cell_grid[i(curr_cell.x - 1, curr_cell.y)], curr_cell)
+      print("len de queue :", len(queue))
+    if curr_cell.y < MAX_CELL_X:
+      # print(curr_cell.x + 1, curr_cell.y)
+      queue = update_neighbour(cell_grid[i(curr_cell.x + 1, curr_cell.y)], curr_cell)
+      print("len de queue :", len(queue))
+    print("len de queue a la fin :", len(queue))
 
 init_grid()
-# d = 0
 set_start(0, 0)
-set_end(6, 7)
+set_end(3, 3)
+
 while True:
-  # if queue != []:
-  #   iter(queue, d, 2, 2)
+  if queue != []:
+    print("_______")
+    iteration(cell_grid[i(0, 0)], cell_grid[i(3, 3)])
 
   for event in pygame.event.get():
     if event.type == pygame.MOUSEBUTTONUP:
@@ -81,6 +140,6 @@ while True:
     if event.type == pygame.QUIT:
       pygame.quit()
       sys.exit()
-  clock.tick(60)
+  clock.tick(0.5)
   pygame.display.update()
 pygame.quit()
