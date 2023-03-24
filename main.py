@@ -1,10 +1,10 @@
 import pygame, math
 
 pygame.init()
-MAX_CELL_X  = 14
-MAX_CELL_Y = 14
+MAX_CELL_X = 30
+MAX_CELL_Y = 30
 
-block_size = 30
+block_size = 20
 WINDOW_HEIGHT = MAX_CELL_Y*block_size
 WINDOW_WIDTH  = MAX_CELL_X*block_size
 inner_block = block_size - 2
@@ -18,124 +18,128 @@ class Cell:
         self.y = y
         self.dist = math.inf
         self.parent = self
-        self.type = 'n'
-          # n = none
-          # w = wall
-          # s = start
-          # e = end
+        self.type = "cell"
+        self.is_visited = False
     def __str__(self):
-      return f'Cell(\'{self.x}\', {self.y}, {self.dist})'
-
-def i(x, y): return (x + y * MAX_CELL_X)
+      return f'Cell({self.x}, {self.y}, {self.dist}, {self.type}, {self.is_visited})'
 
 cell_grid = []
-queue = []
-visited = []
 
-def mem(tab, cell):
+def display_cell_grid():
+  for y in range (len(cell_grid)):
+    for x in range (len(cell_grid[0])):
+      print(cell_grid[x][y], "\t" , end="")
+    print()
+
+def less_dist_unvisited_cell():
+  ldist = math.inf
+  c = None
+  for y in range (len(cell_grid)):
+    for x in range (len(cell_grid[0])):
+      if cell_grid[x][y].is_visited == False and cell_grid[x][y].dist < ldist:
+        ldist = cell_grid[x][y].dist
+        c = cell_grid[x][y]
+  return c
+
+def printr(tab):
+  print("unvisiteds:", end="")
   for c in tab:
-    if c == cell: return True
-  return False
+    print(c, end="")
+  print()
+
+def unvisited_neighbours(cell):
+  global cell_grid
+  res = []
+  if cell.y > 0:
+    if cell_grid[cell.x][cell.y - 1].is_visited == False and cell_grid[cell.x][cell.y - 1].type != "wall":
+      res.append(cell_grid[cell.x][cell.y - 1])
+      cell_grid[cell.x][cell.y - 1].parent = cell
+  if cell.y < MAX_CELL_Y - 1:
+    if cell_grid[cell.x][cell.y + 1].is_visited == False and cell_grid[cell.x][cell.y + 1].type != "wall":
+      res.append(cell_grid[cell.x][cell.y + 1])
+      cell_grid[cell.x][cell.y + 1].parent = cell
+  if cell.x > 0:
+    if cell_grid[cell.x - 1][cell.y].is_visited == False and cell_grid[cell.x - 1][cell.y].type != "wall":
+      res.append(cell_grid[cell.x - 1][cell.y])
+      cell_grid[cell.x - 1][cell.y].parent = cell
+  if cell.x < MAX_CELL_X - 1:
+    if cell_grid[cell.x + 1][cell.y].is_visited == False and cell_grid[cell.x + 1][cell.y].type != "wall":
+      res.append(cell_grid[cell.x + 1][cell.y])
+      cell_grid[cell.x + 1][cell.y].parent = cell
+  return res
 
 def init_grid():
+  global cell_grid
   for x in range (0, WINDOW_WIDTH, block_size):
+    tmp = []
     for y in range (0, WINDOW_HEIGHT, block_size):
       r = pygame.Rect(x, y, block_size, block_size)
       pygame.draw.rect(screen, "gray", r, 1)
-      cell_grid.append(Cell((int)(x/block_size), (int)(y/block_size)))
-      # print(len(cell_grid)-1, x, y, i(x, y))
-      # print(, )
+      tmp.append(Cell((int)(x/block_size), (int)(y/block_size)))
+    cell_grid.append(tmp)
 
 def fill_cell(x, y, color):
   r = pygame.Rect(block_size*x + 1, block_size*y + 1, inner_block, inner_block)
   pygame.draw.rect(screen, color, r)
 
 def set_wall(x, y):
+  global cell_grid
+  print("Wall set at : ", cell_grid[x][y])
+  cell_grid[x][y].type = "wall"
   fill_cell(x, y, "gray")
-  cell_grid[i(x, y)].type = 'w'
-
-def add_to_queue(cell):
-  global queue
-  i = 0
-  if queue == []: queue.append(cell)
-  else:
-    if queue[len(queue) - 1].dist < cell.dist:
-      queue.append(cell)
-    else:
-      for c in queue:
-        if cell.dist > c.dist:
-          queue.insert(i-1, cell)
-          break
-        i += 1
 
 def set_start(x, y):
-  global queue
+  global cell_grid
+  print("Start set at : ", cell_grid[x][y])
+  cell_grid[x][y].dist = 0
+  cell_grid[x][y].type = " start"
+  cell_grid[x][y].is_visited = True
   fill_cell(x, y, "red")
-  cell_grid[i(x, y)].type = 's'
-  cell_grid[i(x, y)].dist = 0
-  queue.append(cell_grid[i(x, y)])
+  return cell_grid[x][y]
 
 def set_end(x, y):
+  global cell_grid
+  print("End set at : ", cell_grid[x][y])
+  cell_grid[x][y].type = " end"
   fill_cell(x, y, "yellow")
-  cell_grid[i(x, y)].type = 'e'
+  return cell_grid[x][y]
 
-def backtrace(start, curr_cell):
-  global queue
-  print("BACKTRACE")
-  queue = []
-  fill_cell(curr_cell.x, curr_cell.y, "blue")
-  if curr_cell != start:
-    return backtrace(start, curr_cell.parent)
+def min(a, b):
+  # return (if a > b: b else: a)
+  if a > b: return b
+  else: return a
 
-def update_neighbour(neighbour, parent):
-  global queue
-  if mem(visited, neighbour):
-    print("already visited")
+def traceback(cell):
+  global is_finish
+  clock.tick(30)
+  pygame.display.update()
+  fill_cell(cell.x, cell.y, "blue")
+  if cell.parent != cell:
+    traceback(cell.parent)
+
+def loop(current, end):
+  global cell_grid
+  fill_cell(current.x, current.y, "green")
+  clock.tick(100)
+  pygame.display.update()
+  for neighbour in unvisited_neighbours(current):
+    neighbour.dist = min(neighbour.dist, current.dist + 1)
+  current.is_visited = True
+  next_cell = less_dist_unvisited_cell()
+  if end.is_visited == True or next_cell == None: traceback(end)
   else:
-    fill_cell(neighbour.x, neighbour.y, "green")
-    if neighbour.dist == math.inf:
-      neighbour.dist = parent.dist + 10
-    elif neighbour.dist < parent.dist + 10:
-      neighbour.dist = parent.dist + 10
-    if not mem(queue, neighbour):
-      add_to_queue(neighbour)
-    neighbour.parent = parent
-
-def print_queue(queue):
-  print("<<")
-  for c in queue:
-    print(c)
-  print(">>")
-
-def iteration(start_cell, end_cell):
-  global queue
-  curr_cell = queue[0]
-  if curr_cell == end_cell: backtrace(start_cell, end_cell)
-  else:
-    queue.pop(0)
-    visited.append(curr_cell)
-    fill_cell(curr_cell.x, curr_cell.y, "pink")
-    if curr_cell.y > 0:
-      update_neighbour(cell_grid[i(curr_cell.x, curr_cell.y - 1)], curr_cell)
-    if curr_cell.y < MAX_CELL_Y:
-      update_neighbour(cell_grid[i(curr_cell.x, curr_cell.y + 1)], curr_cell)
-    if curr_cell.x > 0:
-      update_neighbour(cell_grid[i(curr_cell.x - 1, curr_cell.y)], curr_cell)
-    if curr_cell.y < MAX_CELL_X:
-      update_neighbour(cell_grid[i(curr_cell.x + 1, curr_cell.y)], curr_cell)
-    # print("len de queue a la fin :", len(queue))
-    print_queue(queue)
+    loop(next_cell, end)
 
 init_grid()
-set_start(0, 0)
-set_end(3, 3)
+start = set_start(3,4)
+end = set_end(18,23)
 
 while True:
-  if queue != []:
-    print("_______")
-    iteration(cell_grid[i(0, 0)], cell_grid[i(3, 3)])
-
   for event in pygame.event.get():
+    if event.type == pygame.KEYDOWN:
+      if event.key == pygame.K_SPACE:
+        loop(start, end)
+        print("$$")
     if event.type == pygame.MOUSEBUTTONUP:
       pos_x, pos_y = pygame.mouse.get_pos()
       x, _ = divmod(pos_x, block_size)
