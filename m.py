@@ -23,12 +23,12 @@ class Cell:
 
 cell_grid = []
 
-def get_cell(x,y): return cell_grid[y][x]
+# def get_cell(x,y): return cell_grid[x][y]
 
 def display_cell_grid():
   for y in range (len(cell_grid)):
     for x in range (len(cell_grid[0])):
-      print(get_cell(x,y), end="")
+      print(cell_grid[x][y], end="")
     print()
 
 def init_grid():
@@ -45,13 +45,13 @@ def fill_cell(x, y, color):
   pygame.draw.rect(screen, color, r)
 
 def set_wall(x, y):
-  print(get_cell(x,y))
+  print(cell_grid[x][y])
   fill_cell(x, y, "gray")
 
 def set_start(x, y):
   global cell_grid
-  print(get_cell(x,y).dist)
-  get_cell(x,y).dist = 0
+  print(cell_grid[x][y].dist)
+  cell_grid[x][y].dist = 0
   fill_cell(x, y, "red")
 
 
