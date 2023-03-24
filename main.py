@@ -32,40 +32,39 @@ def display_cell_grid():
     print()
 
 def less_dist_unvisited_cell():
-  ldist = math.inf
+  d = math.inf
   c = None
   for y in range (len(cell_grid)):
     for x in range (len(cell_grid[0])):
-      if cell_grid[x][y].is_visited == False and cell_grid[x][y].dist < ldist:
-        ldist = cell_grid[x][y].dist
-        c = cell_grid[x][y]
+      cell = cell_grid[x][y]
+      if cell.is_visited == False and cell.dist < d:
+        d = cell.dist
+        c = cell
   return c
-
-def printr(tab):
-  print("unvisiteds:", end="")
-  for c in tab:
-    print(c, end="")
-  print()
 
 def unvisited_neighbours(cell):
   global cell_grid
   res = []
   if cell.y > 0:
-    if cell_grid[cell.x][cell.y - 1].is_visited == False and cell_grid[cell.x][cell.y - 1].type != "wall":
-      res.append(cell_grid[cell.x][cell.y - 1])
-      cell_grid[cell.x][cell.y - 1].parent = cell
+    north = cell_grid[cell.x][cell.y - 1]
+    if north.is_visited == False and north.type != "wall":
+      res.append(north)
+      north.parent = cell
   if cell.y < MAX_CELL_Y - 1:
-    if cell_grid[cell.x][cell.y + 1].is_visited == False and cell_grid[cell.x][cell.y + 1].type != "wall":
-      res.append(cell_grid[cell.x][cell.y + 1])
-      cell_grid[cell.x][cell.y + 1].parent = cell
+    south = cell_grid[cell.x][cell.y + 1]
+    if south.is_visited == False and south.type != "wall":
+      res.append(south)
+      south.parent = cell
   if cell.x > 0:
-    if cell_grid[cell.x - 1][cell.y].is_visited == False and cell_grid[cell.x - 1][cell.y].type != "wall":
-      res.append(cell_grid[cell.x - 1][cell.y])
-      cell_grid[cell.x - 1][cell.y].parent = cell
+    west = cell_grid[cell.x - 1][cell.y]
+    if west.is_visited == False and west.type != "wall":
+      res.append(west)
+      west.parent = cell
   if cell.x < MAX_CELL_X - 1:
-    if cell_grid[cell.x + 1][cell.y].is_visited == False and cell_grid[cell.x + 1][cell.y].type != "wall":
-      res.append(cell_grid[cell.x + 1][cell.y])
-      cell_grid[cell.x + 1][cell.y].parent = cell
+    east = cell_grid[cell.x + 1][cell.y]
+    if east.is_visited == False and east.type != "wall":
+      res.append(east)
+      east.parent = cell
   return res
 
 def init_grid():
@@ -84,13 +83,11 @@ def fill_cell(x, y, color):
 
 def set_wall(x, y):
   global cell_grid
-  print("Wall set at : ", cell_grid[x][y])
   cell_grid[x][y].type = "wall"
   fill_cell(x, y, "gray")
 
 def set_start(x, y):
   global cell_grid
-  print("Start set at : ", cell_grid[x][y])
   cell_grid[x][y].dist = 0
   cell_grid[x][y].type = " start"
   cell_grid[x][y].is_visited = True
@@ -99,13 +96,11 @@ def set_start(x, y):
 
 def set_end(x, y):
   global cell_grid
-  print("End set at : ", cell_grid[x][y])
   cell_grid[x][y].type = " end"
   fill_cell(x, y, "yellow")
   return cell_grid[x][y]
 
 def min(a, b):
-  # return (if a > b: b else: a)
   if a > b: return b
   else: return a
 
@@ -114,16 +109,14 @@ def traceback(cell):
   clock.tick(30)
   pygame.display.update()
   fill_cell(cell.x, cell.y, "blue")
-  if cell.parent != cell:
-    traceback(cell.parent)
+  if cell.parent != cell: traceback(cell.parent)
 
 def loop(current, end):
   global cell_grid
   fill_cell(current.x, current.y, "green")
   clock.tick(100)
   pygame.display.update()
-  for neighbour in unvisited_neighbours(current):
-    neighbour.dist = min(neighbour.dist, current.dist + 1)
+  for c in unvisited_neighbours(current): c.dist = min(c.dist, current.dist + 1)
   current.is_visited = True
   next_cell = less_dist_unvisited_cell()
   if end.is_visited == True or next_cell == None: traceback(end)
@@ -139,7 +132,6 @@ while True:
     if event.type == pygame.KEYDOWN:
       if event.key == pygame.K_SPACE:
         loop(start, end)
-        print("$$")
     if event.type == pygame.MOUSEBUTTONUP:
       pos_x, pos_y = pygame.mouse.get_pos()
       x, _ = divmod(pos_x, block_size)
