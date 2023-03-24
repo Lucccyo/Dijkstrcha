@@ -29,6 +29,7 @@ class Cell:
 def i(x, y): return (x + y * MAX_CELL_X)
 
 cell_grid = []
+ended = False
 # queue = []
 
 def mem(cell, queue):
@@ -81,12 +82,13 @@ def set_end(x, y):
 
 def backtrace(start, curr_cell, queue):
   # global queue
-  print("BACKTRACE")
   queue = []
   fill_cell(curr_cell.x, curr_cell.y, "blue")
+  # return queue
   if curr_cell != start:
-    return backtrace(start, curr_cell.parent, queue)
-  else: return
+    backtrace(start, curr_cell.parent, queue)
+    # print("BACKTRACE")
+  else: return queue
 
 # def backtrace(start, curr_cell):
 #   global queue
@@ -111,8 +113,10 @@ def update_neighbour(neighbour, parent, queue):
 
 def iteration(start_cell, end_cell, queue):
   # global queue
+  # if queue == []: return queue
+  # else:
   curr_cell = queue[0]
-  if curr_cell == end_cell: backtrace(start_cell, end_cell, queue)
+  if curr_cell == end_cell: return backtrace(start_cell, end_cell, queue)
   else:
     queue.pop(0)
     fill_cell(curr_cell.x, curr_cell.y, "pink")

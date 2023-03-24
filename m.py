@@ -23,8 +23,6 @@ class Cell:
 
 cell_grid = []
 
-# def get_cell(x,y): return cell_grid[x][y]
-
 def display_cell_grid():
   for y in range (len(cell_grid)):
     for x in range (len(cell_grid[0])):

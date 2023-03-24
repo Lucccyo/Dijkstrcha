@@ -30,9 +30,10 @@ def i(x, y): return (x + y * MAX_CELL_X)
 
 cell_grid = []
 queue = []
+visited = []
 
-def mem(cell):
-  for c in queue:
+def mem(tab, cell):
+  for c in tab:
     if c == cell: return True
   return False
 
@@ -85,40 +86,45 @@ def backtrace(start, curr_cell):
   fill_cell(curr_cell.x, curr_cell.y, "blue")
   if curr_cell != start:
     return backtrace(start, curr_cell.parent)
-  # neighbour.dist = parent.dist + 10
 
 def update_neighbour(neighbour, parent):
   global queue
-  fill_cell(neighbour.x, neighbour.y, "green")
-  if neighbour.dist == math.inf:
-    neighbour.dist = parent.dist + 10
-  elif neighbour.dist < parent.dist + 10:
-    neighbour.dist = parent.dist + 10
-  if not mem(neighbour):
-    add_to_queue(neighbour)
-  neighbour.parent = parent
+  if mem(visited, neighbour):
+    print("already visited")
+  else:
+    fill_cell(neighbour.x, neighbour.y, "green")
+    if neighbour.dist == math.inf:
+      neighbour.dist = parent.dist + 10
+    elif neighbour.dist < parent.dist + 10:
+      neighbour.dist = parent.dist + 10
+    if not mem(queue, neighbour):
+      add_to_queue(neighbour)
+    neighbour.parent = parent
+
+def print_queue(queue):
+  print("<<")
+  for c in queue:
+    print(c)
+  print(">>")
 
 def iteration(start_cell, end_cell):
   global queue
   curr_cell = queue[0]
-  # print("ajout de ", curr_cell)
   if curr_cell == end_cell: backtrace(start_cell, end_cell)
   else:
     queue.pop(0)
+    visited.append(curr_cell)
     fill_cell(curr_cell.x, curr_cell.y, "pink")
-    # if curr_cell.y > 0:
-    #   update_neighbour(cell_grid[i(curr_cell.x, curr_cell.y - 1)], curr_cell)
-    #   print("len de queue :", len(queue))
+    if curr_cell.y > 0:
+      update_neighbour(cell_grid[i(curr_cell.x, curr_cell.y - 1)], curr_cell)
     if curr_cell.y < MAX_CELL_Y:
       update_neighbour(cell_grid[i(curr_cell.x, curr_cell.y + 1)], curr_cell)
-      # print("len de queue :", len(queue))
-    # if curr_cell.x > 0:
-    #   update_neighbour(cell_grid[i(curr_cell.x - 1, curr_cell.y)], curr_cell)
-    #   print("len de queue :", len(queue))
+    if curr_cell.x > 0:
+      update_neighbour(cell_grid[i(curr_cell.x - 1, curr_cell.y)], curr_cell)
     if curr_cell.y < MAX_CELL_X:
       update_neighbour(cell_grid[i(curr_cell.x + 1, curr_cell.y)], curr_cell)
-      # print("len de queue :", len(queue))
-    print("len de queue a la fin :", len(queue))
+    # print("len de queue a la fin :", len(queue))
+    print_queue(queue)
 
 init_grid()
 set_start(0, 0)
@@ -138,6 +144,6 @@ while True:
     if event.type == pygame.QUIT:
       pygame.quit()
       sys.exit()
-  clock.tick(0.5)
+  clock.tick(10)
   pygame.display.update()
 pygame.quit()
