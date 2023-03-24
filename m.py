@@ -4,7 +4,7 @@ pygame.init()
 MAX_CELL_X = 5
 MAX_CELL_Y = 5
 
-block_size = 70
+block_size = 40
 WINDOW_HEIGHT = MAX_CELL_Y*block_size
 WINDOW_WIDTH  = MAX_CELL_X*block_size
 inner_block = block_size - 2
@@ -24,6 +24,7 @@ class Cell:
       return f'Cell({self.x}, {self.y}, {self.dist}, {self.type}, {self.is_visited})'
 
 cell_grid = []
+is_finish = False
 
 def display_cell_grid():
   for y in range (len(cell_grid)):
@@ -111,48 +112,36 @@ def min(a, b):
   else: return a
 
 def traceback(cell):
+  global is_finish
+  clock.tick(5)
+  pygame.display.update()
+  fill_cell(cell.x, cell.y, "blue")
   if cell.parent != cell:
-    print("[", cell.x, ";", cell.y, "] ", end="")
     traceback(cell.parent)
-  else: print("[", cell.x, ";", cell.y, "] ", end="")
+  else: is_finish = True
 
 def loop(current, end):
   global cell_grid
+  fill_cell(current.x, current.y, "green")
+  clock.tick(5)
+  pygame.display.update()
   for neighbour in unvisited_neighbours(current):
-    # fill_cell(neighbour.x, neighbour.y, "white")
     neighbour.dist = min(neighbour.dist, current.dist + 1)
-  # print(cell_grid[current.x][current.y].is_visited)
   current.is_visited = True
-  # print(cell_grid[current.x][current.y].is_visited)
   next_cell = less_dist_unvisited_cell()
-  if end.is_visited == True or next_cell == None: # or the smallest unvisited cell distance is infinite
-    print("stop, dist end = ", end.dist)
-    traceback(end)
+  if end.is_visited == True or next_cell == None: traceback(end)
   else:
-    print("next cell : " ,next_cell)
     loop(next_cell, end)
-
-
-
-
 
 init_grid()
 start = set_start(0,0)
 end = set_end(3,1)
-# print(less_dist_unvisited_cell())
-# print(min(math.inf, 1))
-# loop(cell_grid[0][1])
-# display_cell_grid()
-loop(start, end)
-print("$$")
-
-
-
-
-
 
 
 while True:
+  while not is_finish:
+    loop(start, end)
+    print("$$")
   for event in pygame.event.get():
     if event.type == pygame.MOUSEBUTTONUP:
       pos_x, pos_y = pygame.mouse.get_pos()
@@ -162,6 +151,6 @@ while True:
     if event.type == pygame.QUIT:
       pygame.quit()
       sys.exit()
-  clock.tick(60)
+  clock.tick(10)
   pygame.display.update()
 pygame.quit()
