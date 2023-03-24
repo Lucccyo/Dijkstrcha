@@ -21,7 +21,7 @@ class Cell:
         self.type = "cell"
         self.is_visited = False
     def __str__(self):
-      return f'Cell(\'{self.x}\', {self.y}, {self.dist}, {self.type})'
+      return f'Cell({self.x}, {self.y}, {self.dist}, {self.type}, {self.is_visited})'
 
 cell_grid = []
 
@@ -41,12 +41,32 @@ def less_dist_unvisited_cell():
         c = cell_grid[x][y]
   return c
 
+def printr(tab):
+  print("unvisiteds:", end="")
+  for c in tab:
+    print(c, end="")
+  print()
+
 def unvisited_neighbours(cell):
+  global cell_grid
   res = []
-  if cell.y > 0:  res.append(cell_grid[cell.x][cell.y - 1])
-  if cell.y < MAX_CELL_Y: res.append(cell_grid[cell.x][cell.y + 1])
-  if cell.x > 0: res.append(cell_grid[cell.x - 1][cell.y])
-  if cell.y < MAX_CELL_X: res.append(cell_grid[cell.x + 1][cell.y])
+  if cell.y > 0:
+    if cell_grid[cell.x][cell.y - 1].is_visited == False:
+      res.append(cell_grid[cell.x][cell.y - 1])
+      cell_grid[cell.x][cell.y - 1].parent = cell
+  if cell.y < MAX_CELL_Y - 1:
+    if cell_grid[cell.x][cell.y + 1].is_visited == False:
+      res.append(cell_grid[cell.x][cell.y + 1])
+      cell_grid[cell.x][cell.y + 1].parent = cell
+  if cell.x > 0:
+    if cell_grid[cell.x - 1][cell.y].is_visited == False:
+      res.append(cell_grid[cell.x - 1][cell.y])
+      cell_grid[cell.x - 1][cell.y].parent = cell
+  if cell.x < MAX_CELL_X - 1:
+    if cell_grid[cell.x + 1][cell.y].is_visited == False:
+      res.append(cell_grid[cell.x + 1][cell.y])
+      cell_grid[cell.x + 1][cell.y].parent = cell
+  # printr(res)
   return res
 
 def init_grid():
@@ -90,17 +110,26 @@ def min(a, b):
   if a > b: return b
   else: return a
 
+def traceback(cell):
+  if cell.parent != cell:
+    print("[", cell.x, ";", cell.y, "] ", end="")
+    traceback(cell.parent)
+  else: print("[", cell.x, ";", cell.y, "] ", end="")
+
 def loop(current, end):
   global cell_grid
   for neighbour in unvisited_neighbours(current):
-    fill_cell(neighbour.x, neighbour.y, "white")
+    # fill_cell(neighbour.x, neighbour.y, "white")
     neighbour.dist = min(neighbour.dist, current.dist + 1)
+  # print(cell_grid[current.x][current.y].is_visited)
   current.is_visited = True
+  # print(cell_grid[current.x][current.y].is_visited)
   next_cell = less_dist_unvisited_cell()
   if end.is_visited == True or next_cell == None: # or the smallest unvisited cell distance is infinite
-    print("stop")
+    print("stop, dist end = ", end.dist)
+    traceback(end)
   else:
-    # print(next_cell)
+    print("next cell : " ,next_cell)
     loop(next_cell, end)
 
 
@@ -108,14 +137,14 @@ def loop(current, end):
 
 
 init_grid()
-start = set_start(0,1)
+start = set_start(0,0)
 end = set_end(3,1)
 # print(less_dist_unvisited_cell())
 # print(min(math.inf, 1))
 # loop(cell_grid[0][1])
 # display_cell_grid()
 loop(start, end)
-
+print("$$")
 
 
 
